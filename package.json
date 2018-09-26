@@ -1,0 +1,45 @@
+{
+  "name": "quantum-site-ts",
+  "version": "0.0.1",
+  "description": "A Quantum Site TypeScript web application",
+  "main": "build/handler.js",
+  "scripts": {
+    "test": "jest",
+    "clean": "rm -rf build",
+    "tokens": "for f in build/*.htm; do sed -i '' s/\\{\\{version\\}\\}/$(date +%s)/g $f; done",
+    "assets": "mkdir -p build/assets;rsync -aP --exclude '*.map' --exclude '*.scss' src/assets/ build/assets/;",
+    "build": "yarn;yarn clean;yarn assets;tsc;cp ./.env build/;cp ./src/*.htm build/;yarn tokens;cp serverless.yml build;cp package.json build;",
+    "offline": "yarn build;./node_modules/.bin/sls offline start --dontPrintOutput",
+    "package": "yarn build;cd build;../node_modules/.bin/sls package --stage dev;cd ..",
+    "deploy": "yarn build;cd build;../node_modules/.bin/sls deploy --stage dev --mode remote;cd ..",
+    "deploy-prod": "yarn build;cd build;../node_modules/.bin/sls deploy --stage prod --mode remote;cd .."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GioCirque/quantum-site-ts.git"
+  },
+  "keywords": [
+    "quantum",
+    "site",
+    "typescript",
+    "aws",
+    "serverless"
+  ],
+  "author": "Gio Palacino <gio@palacino.net>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.13",
+    "@types/dotenv": "4.0.3",
+    "@types/node": "10.10.1",
+    "jest": "23.6.0",
+    "serverless": "1.32.0",
+    "serverless-offline": "3.25.12",
+    "serverless-plugin-bind-deployment-id": "1.0.1",
+    "serverless-s3-sync": "1.6.1",
+    "source-map-support": "0.5.9"
+  },
+  "dependencies": {
+    "aws-sdk": "2.315.0",
+    "dotenv": "6.0.0"
+  }
+}

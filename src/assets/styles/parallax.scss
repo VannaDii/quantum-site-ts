@@ -1,0 +1,27 @@
+body,
+html {
+  height: 100%;
+  margin: 0;
+  font: 400 15px/1.8 'Lato', sans-serif;
+  color: #777;
+}
+body {
+  > div.parallax {
+    height: 100%;
+    > div.section {
+      &.image {
+        position: relative;
+        background-attachment: fixed;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+      &.text {
+        color: #777;
+        background-color: white;
+        text-align: center;
+        padding: 50px 80px;
+      }
+    }
+  }
+}

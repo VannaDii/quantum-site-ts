@@ -1,0 +1,98 @@
+body {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+div.whirl {
+  background-image: url('../images/Bubbles.jpg');
+  height: 100%;
+  @media screen and (max-width: 480px) {
+    height: 500px;
+  }
+}
+
+div.stripes {
+  background-image: url('../images/Lines.jpg');
+  height: 400px;
+}
+
+div.caption {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  color: #000;
+  &.heading {
+    top: 10%;
+  }
+  > span {
+    display: inline-block;
+    background-color: rgba(0, 0, 0, 1);
+    color: rgba(255, 255, 255, 1);
+    &.title {
+      font-size: 2.2em;
+      letter-spacing: 0.1em;
+      padding: 0.35em;
+      &.small {
+        font-size: 1.5em;
+      }
+    }
+    &.prompt {
+      font-size: 0.5em;
+      letter-spacing: 0.2em;
+      padding: 0.75em;
+    }
+  }
+}
+
+h3 {
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  font: 20px 'Lato', sans-serif;
+  color: #111;
+}
+
+div.section {
+  > div.form {
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    top: 30%;
+    form {
+      display: inline-block;
+      input,
+      textarea {
+        border-radius: 0.15em;
+        display: block;
+        margin: 0.5em;
+        font-size: 1.25em;
+        width: 15.3em;
+        padding: 0.15em 0.35em 0.2em 0.35em;
+        border: 1px solid #777;
+      }
+      input:nth-child(1),
+      input:nth-child(2) {
+        width: 6.73em;
+        float: left;
+      }
+      input:nth-child(3) {
+        clear: both;
+      }
+      input[type='submit'] {
+        width: 16.1em;
+        color: #fff;
+        background-color: #000;
+      }
+    }
+  }
+}
+
+div.footer {
+  position: relative;
+  > div {
+    color: #ddd;
+    background-color: #282e34;
+    text-align: center;
+    padding: 50px 80px;
+  }
+}

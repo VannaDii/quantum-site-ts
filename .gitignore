@@ -1,0 +1,14 @@
+# Node.js
+**/node_modules/**/*
+
+# VS Code Garbage
+**/.vscode/**/*.sql
+
+# Project Folders
+**/build/**/*
+**/dist/**/*
+
+
+# Other files I don't want committed
+.credentials
+**/*.css*

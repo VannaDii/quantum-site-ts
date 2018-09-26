@@ -1,0 +1,351 @@
+service: ${self:custom.baseName}-web
+
+provider:
+  name: aws
+  stage: ${self:custom.stage}
+  runtime: nodejs8.10
+  region: us-east-1
+  stackName: ${self:custom.baseName}-stack
+  apiName: ${self:custom.baseName}-api
+  profile: ${self:custom.baseName}
+  versionFunctions: false
+  environment:
+    CDN_DEV: '//dev.cdn.${self:custom.baseDNSName}'
+    CDN_PROD: '//cdn.${self:custom.baseDNSName}'
+  stackTags:
+    name: ${self:custom.baseName}-web
+  tags:
+    name: ${self:custom.baseName}-web
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-bind-deployment-id
+  - serverless-s3-sync
+
+package:
+  include:
+    - ../node_modules/**
+  exclude:
+    - .serverless/**
+    - assets/**
+
+resources:
+  Resources:
+    # S3 Bucket -> CloudFront CDN Resources, Mappings, Policies
+    AssetsCDNAccessId:
+      Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: ${self:custom.baseName}-oai
+    AssetsOrigin:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.baseName}
+        AccessControl: AuthenticatedRead
+        Tags:
+          - Key: name
+            Value: ${self:custom.baseName}-web
+    AssetOriginPolicy:
+      Type: 'AWS::S3::BucketPolicy'
+      Properties:
+        Bucket: ${self:custom.baseName}
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Sid: PolicyForCloudFrontPrivateContent
+              Effect: Allow
+              Principal:
+                CanonicalUser:
+                  'Fn::GetAtt': ['AssetsCDNAccessId', 'S3CanonicalUserId']
+              Action:
+                - 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:custom.baseName}/*'
+      DependsOn:
+        - AssetsOrigin
+    AssetsCDN:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - OriginPath: /prod
+              Id: ${self:custom.baseName}
+              DomainName: '${self:resources.Resources.AssetsOrigin.Properties.BucketName}.s3.amazonaws.com'
+              S3OriginConfig:
+                OriginAccessIdentity:
+                  'Fn::Join':
+                    ['/', ['origin-access-identity/cloudfront', { 'Ref': 'AssetsCDNAccessId' }]]
+          Aliases:
+            - 'cdn.${self:custom.baseDNSName}'
+          Enabled: true
+          ViewerCertificate:
+            AcmCertificateArn: ${self:custom.wildcardCertArn}
+            SslSupportMethod: sni-only
+          DefaultCacheBehavior:
+            TargetOriginId: ${self:custom.baseName}
+            ViewerProtocolPolicy: redirect-to-https
+            ForwardedValues:
+              QueryString: false
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            CachedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+        Tags:
+          - Key: name
+            Value: ${self:custom.baseName}
+      DependsOn:
+        - AssetsCDNAccessId
+        - AssetsOrigin
+    AssetsCDNDev:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - OriginPath: /dev
+              Id: ${self:custom.baseName}
+              DomainName: '${self:resources.Resources.AssetsOrigin.Properties.BucketName}.s3.amazonaws.com'
+              S3OriginConfig:
+                OriginAccessIdentity:
+                  'Fn::Join':
+                    ['/', ['origin-access-identity/cloudfront', { 'Ref': 'AssetsCDNAccessId' }]]
+          Aliases:
+            - 'dev.cdn.${self:custom.baseDNSName}'
+          Enabled: true
+          ViewerCertificate:
+            AcmCertificateArn: ${self:custom.wildcardCertArn}
+            SslSupportMethod: sni-only
+          DefaultCacheBehavior:
+            TargetOriginId: ${self:custom.baseName}
+            ViewerProtocolPolicy: redirect-to-https
+            ForwardedValues:
+              QueryString: false
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            CachedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+        Tags:
+          - Key: name
+            Value: ${self:custom.baseName}
+      DependsOn:
+        - AssetsCDNAccessId
+        - AssetsOrigin
+    # Api Gateway Custom Domains
+    ApiGatewayDomainRoot:
+      Type: AWS::ApiGateway::DomainName
+      Properties:
+        DomainName: ${self:custom.baseDNSName}
+        EndpointConfiguration:
+          Types:
+            - 'EDGE'
+        CertificateArn: ${self:custom.wildcardCertArn}
+    ApiGatewayDomainWWW:
+      Type: AWS::ApiGateway::DomainName
+      Properties:
+        DomainName: 'www.${self:custom.baseDNSName}'
+        EndpointConfiguration:
+          Types:
+            - 'EDGE'
+        CertificateArn: ${self:custom.wildcardCertArn}
+    ApiGatewayDomainDev:
+      Type: AWS::ApiGateway::DomainName
+      Properties:
+        DomainName: 'dev.${self:custom.baseDNSName}'
+        EndpointConfiguration:
+          Types:
+            - 'EDGE'
+        CertificateArn: ${self:custom.wildcardCertArn}
+    ApiGatewayStageProd:
+      Type: AWS::ApiGateway::Stage
+      Properties:
+        StageName: prod
+        Description: 'www.${self:custom.baseName}'
+        RestApiId:
+          'Ref': ApiGatewayRestApi
+        DeploymentId:
+          'Ref': __deployment__
+    ApiGatewayStageDev:
+      Type: AWS::ApiGateway::Stage
+      Properties:
+        StageName: dev
+        Description: 'dev.${self:custom.baseName}'
+        RestApiId:
+          'Ref': ApiGatewayRestApi
+        DeploymentId:
+          'Ref': __deployment__
+    # API Base Path Mapping
+    DomainMappingRoot:
+      Type: AWS::ApiGateway::BasePathMapping
+      Properties:
+        DomainName:
+          'Ref': ApiGatewayDomainRoot
+        RestApiId:
+          'Ref': ApiGatewayRestApi # Created by serverless
+        Stage: prod
+      DependsOn:
+        - ApiGatewayDomainRoot
+        - ApiGatewayStageProd
+    DomainMappingWWW:
+      Type: AWS::ApiGateway::BasePathMapping
+      Properties:
+        DomainName:
+          'Ref': ApiGatewayDomainWWW
+        RestApiId:
+          'Ref': ApiGatewayRestApi # Created by serverless
+        Stage: prod
+      DependsOn:
+        - ApiGatewayDomainWWW
+        - ApiGatewayStageProd
+    DomainMappingDev:
+      Type: AWS::ApiGateway::BasePathMapping
+      Properties:
+        DomainName:
+          'Ref': ApiGatewayDomainDev
+        RestApiId:
+          'Ref': ApiGatewayRestApi # Created by serverless
+        Stage: dev
+      DependsOn:
+        - ApiGatewayDomainDev
+        - ApiGatewayStageDev
+
+    # DNS Resource
+    DNSEntryRoot:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneName: '${self:custom.baseDNSName}.'
+        AliasTarget:
+          DNSName:
+            'Fn::GetAtt': ['ApiGatewayDomainRoot', 'DistributionDomainName']
+          HostedZoneId:
+            'Fn::GetAtt': ['ApiGatewayDomainRoot', 'DistributionHostedZoneId']
+        Comment: 'The root domain for ${self:custom.baseName}'
+        Name: '${self:custom.baseDNSName}.'
+        Type: A
+      DependsOn:
+        - ApiGatewayDomainRoot
+        - DomainMappingRoot
+    DNSEntryWWW:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneName: '${self:custom.baseDNSName}.'
+        AliasTarget:
+          DNSName:
+            'Fn::GetAtt': ['ApiGatewayDomainWWW', 'DistributionDomainName']
+          HostedZoneId:
+            'Fn::GetAtt': ['ApiGatewayDomainWWW', 'DistributionHostedZoneId']
+        Comment: 'The www record for ${self:custom.baseName}'
+        Name: 'www.${self:custom.baseDNSName}.'
+        Type: A
+      DependsOn:
+        - ApiGatewayDomainWWW
+        - DomainMappingWWW
+    DNSEntryCDN:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneName: '${self:custom.baseDNSName}.'
+        Comment: 'The CDN record for prod stage ${self:custom.baseName}'
+        ResourceRecords:
+          - 'Fn::GetAtt': ['AssetsCDN', 'DomainName']
+        Name: 'cdn.${self:custom.baseDNSName}'
+        Type: CNAME
+        TTL: '900'
+      DependsOn:
+        - AssetsCDN
+    DNSEntryCDNDev:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneName: '${self:custom.baseDNSName}.'
+        Comment: 'The CDN record for the dev stage or ${self:custom.baseName}'
+        ResourceRecords:
+          - 'Fn::GetAtt': ['AssetsCDNDev', 'DomainName']
+        Name: 'dev.cdn.${self:custom.baseDNSName}'
+        Type: CNAME
+        TTL: '900'
+      DependsOn:
+        - AssetsCDNDev
+
+functions: ${self:custom.functions.${self:custom.mode}}
+
+custom:
+  functions:
+    local:
+      assets:
+        handler: handler.assets
+        description: An offline assets handler
+        events:
+          - http:
+              path: '/assets/{proxy+}'
+              method: get
+              contentHandling: CONVERT_TO_BINARY
+      thanks:
+        handler: handler.thanks
+        description: A generic thank you page
+        events:
+          - http:
+              path: '/thanks'
+              method: get
+      contact:
+        handler: handler.contact
+        description: Handles sending a contact email from a form submission
+        events:
+          - http:
+              path: '/contact'
+              method: post
+      ping:
+        handler: handler.ping
+        description: A generic ping page that responds with pong and date-time
+        events:
+          - http:
+              path: '/ping'
+              method: get
+      index:
+        handler: handler.index
+        description: Serves the main home page
+        events:
+          - http:
+              path: '/'
+              method: get
+    remote:
+      thanks:
+        handler: handler.thanks
+        description: A generic thank you page
+        events:
+          - http:
+              path: '/thanks'
+              method: get
+      contact:
+        handler: handler.contact
+        description: Handles sending a contact email from a form submission
+        events:
+          - http:
+              path: '/contact'
+              method: post
+      index:
+        handler: handler.index
+        description: Serves the main home page
+        events:
+          - http:
+              path: '/'
+              method: get
+
+  stage: ${opt:stage, 'offline'}
+  mode: ${opt:mode, 'local'}
+  baseName: 'my-domain'
+  baseDNSName: 'mydomain.com'
+  wildcardCertArn: 'arn:aws:acm:us-east-1:000000000000:certificate/00000000-0000-0000-0000-000000000000'
+
+  s3Sync:
+    - bucketName: ${self:custom.baseName}
+      bucketPrefix: ${self:custom.stage}/assets/
+      localDir: assets/
+
+  serverless-offline:
+    location: build
+    noAuth: true
+    port: 9989
