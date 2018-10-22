@@ -6,6 +6,8 @@ In physics, a quantum (plural: quanta) is the minimum amount of any physical ent
 
 It works much like any other website. A user navigates to a URL, the URL resolves via DNS, the request is sent to the resolved host, processed, and the response returned to the originator.
 
+![alt text](assets/Quantum-Site-Overview-Diagram.png 'Logo Title Text 1')
+
 ## What's involved
 
 For a typical website, a web server (or farm) would be up and running, ready to serve requests at all times. For a quantum site, thanks to serverless, there is no web server (nor farm) running all the time. This example uses several [Amazon Web Services (AWS)](https://aws.amazon.com/) to make this happen. Before deploying this solution, verify the deployment account has each listed service activated:
