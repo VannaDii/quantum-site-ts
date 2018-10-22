@@ -53,6 +53,21 @@ The `contact` handler in this example also uses [AWS Simple Email Services (SES)
 
 ## Full Setup Walk Through
 
-1. first
-2. ...
-3. profit
+1. Have, or register, a domain name
+2. Have, or create, an [AWS account](https://aws.amazon.com/)
+3. Configure `~/.aws/credentials` for the `aws-cli`
+   1. Detailed instructions on setting up the `aws-cli` can be found in the [AWS CLI Documentation](https://docs.aws.amazon.com/lambda/latest/dg/setup-awscli.html).
+4. Login to [AWS Console](https://console.aws.amazon.com)
+5. Enable [Route 53](https://console.aws.amazon.com/route53/home) DNS. There may be manual domain ownership verification steps involved in this process, via email or DNS record creation. Be sure to read the steps along the way and ensure you can satisfy the verification requirements.
+   1. Setup a Hosted Zone for the domain name
+   2. To support the certificate request, create the root record in the zone:
+      1. `.` - An `A record` pointed to any IP address
+   3. Provide this name in the `serverless.yml` file as the value of the `baseName` variable.
+      > `baseDNSName: 'mydomain.com'`
+6. Access [Certificate Manager](https://console.aws.amazon.com/acm/home). There will be verification steps required during this step. If you hosted zone in Route 53 is already verified you may be able to use automated verification integration provided in the UI processes on the AWS console. Look for buttons that say "Use Route 53" and be aware that you might have to expand collapsed UI elements to find these buttons.
+   4. Request a public certificate for:
+      1. The root domain (mydomain.com)
+      2. A SAN (subject alternate name) wildcard domain (\*.mydomain.com)
+      3. Provide the ARN of the issued certificate in the `serverless.yml` file as the value of the `wildcardCertArn` variable.
+         > `wildcardCertArn: 'arn:aws:acm:us-east-1:000000000000:certificate/00000000-0000-0000-0000-000000000000'`
+7. Deploy the solution to the development stage using `yarn deploy` and then view the deployment by opening a browser and navigating to https://dev.mydomain.com
