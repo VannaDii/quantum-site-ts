@@ -8,7 +8,7 @@ It works much like any other website. A user navigate to a URL, the URL is resol
 
 ## What's involved
 
-For a typical website, a web server (or farm) would be up and running, ready to serve requests at all times. For a quantum site, thanks to serverless, there is no web server (nor farm) running all the time. This example uses several [Amazon Web Services (AWS)](https://aws.amazon.com/) to make this happen:
+For a typical website, a web server (or farm) would be up and running, ready to serve requests at all times. For a quantum site, thanks to serverless, there is no web server (nor farm) running all the time. This example uses several [Amazon Web Services (AWS)](https://aws.amazon.com/) to make this happen. The following services need to be activated on the account being used:
 
 - [API Gateway](https://console.aws.amazon.com/apigateway/home)
   - Used to expose `dev` and `prod` stages of Lambda functions using Custom Domain Names, SSL, and Edge Optimizations.
@@ -57,6 +57,32 @@ The `contact` handler in this example also uses [AWS Simple Email Services (SES)
 2. Have, or create, an [AWS account](https://aws.amazon.com/)
 3. Configure `~/.aws/credentials` for the `aws-cli`
    1. Detailed instructions on setting up the `aws-cli` can be found in the [AWS CLI Documentation](https://docs.aws.amazon.com/lambda/latest/dg/setup-awscli.html).
+   2. Ensure these credentials are in a group with the following policies.
+      - AWSLambdaFullAccess
+      - AmazonS3FullAccess
+      - CloudFrontFullAccess
+      - AmazonAPIGatewayAdministrator
+      - AmazonRoute53FullAccess
+      - AWSCloudFormationDeploy
+        - This policy has the following actions allowed on all resources
+          - `cloudformation:CreateChangeSet`
+          - `cloudformation:CreateStack`
+          - `cloudformation:CreateStack`
+          - `cloudformation:DescribeChangeSet`
+          - `cloudformation:DescribeStackEvents`
+          - `cloudformation:DescribeStackResource`
+          - `cloudformation:DescribeStacks`
+          - `cloudformation:DescribeStacks`
+          - `cloudformation:ExecuteChangeSet`
+          - `cloudformation:ListStacks`
+          - `cloudformation:UpdateStack`
+          - `cloudformation:UpdateStack`
+          - `cloudformation:ValidateTemplate`
+          - `iam:CreateRole`
+          - `iam:DeleteRole`
+          - `iam:DeleteRolePolicy`
+          - `iam:PutRolePolicy`
+          - `iam:UpdateRole`
 4. Login to [AWS Console](https://console.aws.amazon.com)
 5. Enable [Route 53](https://console.aws.amazon.com/route53/home) DNS. There may be manual domain ownership verification steps involved in this process, via email or DNS record creation. Be sure to read the steps along the way and ensure you can satisfy the verification requirements.
    1. Setup a Hosted Zone for the domain name
