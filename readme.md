@@ -99,3 +99,23 @@ The `contact` handler in this example also uses [AWS Simple Email Services (SES)
       3. Provide the ARN of the issued certificate in the `serverless.yml` file as the value of the `wildcardCertArn` variable.
          > `wildcardCertArn: 'arn:aws:acm:us-east-1:000000000000:certificate/00000000-0000-0000-0000-000000000000'`
 7. Deploy the solution to the development stage using `yarn deploy` and then view the deployment by opening a browser and navigating to https://dev.mydomain.com
+
+## Questions
+
+**Why does this even exist?**  
+To demonstrate the ability to create a site which essentially doesn't exist until it's requested.
+
+**Why use lambdas for serving content?**  
+To create a simple server rendered website.
+
+**Can this be done with an SPA/PWA?**  
+Yes, the whole site could be served from the CDN and include scripts that call lambdas.
+
+**Is this simpler done with SPA/PWA**  
+Subjective; SPA/PWA frameworks like Vue and React can be more complicated to setup, and bulkier for simple sites.
+
+**How much does it cost to do this?**  
+One of my deployments of this solution is currently costing me $0.56 USD per month. Most of the services used here have [AWS Free Tier](https://aws.amazon.com/free/) offerings. The domain name cost varies and can be as low as $12 annually. The cost will be largely based on how much the site is used.
+
+**Where can I see a deployment of this solution?**  
+You can see one of my original deployments of this at [Carte Blanche Circus (https://carteblanchecircus.com)](https://carteblanchecircus.com)
