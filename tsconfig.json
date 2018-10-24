@@ -5,7 +5,7 @@
     "lib": ["es6", "dom"],
     "moduleResolution": "node",
     "rootDir": "./src",
-    "outDir": "./build",
+    "outDir": "./dist",
     "sourceMap": true,
     "allowJs": true,
     "noImplicitAny": true,
@@ -17,6 +17,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["node_modules", "build"],
+  "exclude": ["node_modules", "dist"],
   "types": ["typePatches"]
 }
