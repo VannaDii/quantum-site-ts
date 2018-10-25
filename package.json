@@ -15,7 +15,7 @@
     "build": "yarn;yarn clean;yarn path:fix;concurrently \"yarn setup\" \"yarn compile\";yarn path:reset",
     "offline": "yarn build;sls offline start --dontPrintOutput",
     "package:dev": "yarn build;cd dist;sls package --stage dev;cd ..",
-    "package:prod": "yarn build;cd dist;sls package --stage dev;cd ..",
+    "package:prod": "yarn build;cd dist;sls package --stage prod;cd ..",
     "deploy:dev": "yarn build;cd dist;sls deploy --stage dev --mode remote;cd ..",
     "deploy:prod": "yarn build;cd dist;sls deploy --stage prod --mode remote;cd .."
   },

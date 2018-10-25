@@ -372,6 +372,6 @@ custom:
       localDir: assets/
 
   serverless-offline:
-    location: build
+    location: dist
     noAuth: true
     port: 9989
